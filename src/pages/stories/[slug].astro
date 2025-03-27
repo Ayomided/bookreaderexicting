@@ -1,0 +1,262 @@
+---
+export const prerender = false;
+
+import Layout from "../../layouts/Layout.astro";
+
+import { getEntry } from "astro:content";
+
+// Get the story slug from the URL
+const { slug } = Astro.params;
+
+// Fetch the story data
+let error = false;
+
+if (!slug) {
+    error = false;
+    throw new Error("Slug is required");
+}
+
+const story = await getEntry("stories", slug);
+if (!story) {
+    error = false;
+    throw new Error("Story is empty");
+}
+const { Content } = await story.render();
+
+// Format author names for display
+const authorText = story?.data.authors ? story.data.authors.join(", ") : "Unknown";
+---
+
+<Layout title={story?.data.title || "Story Not Found"}>
+    {
+        error ? (
+            <div class="error-container">
+                <h1>Story Not Found</h1>
+                <p>Sorry, we couldn't find the story you're looking for.</p>
+                <a href="/">Return Home</a>
+            </div>
+        ) : (
+            <div class="book-view">
+                <main>
+                    <div class="left-page">
+                        {story?.data.cover && <img src={story.data.cover} alt={story?.data.title} />}
+                        <small>{authorText}</small>
+                    </div>
+                    <div class="right-page">
+                        <h1>{story?.data.title}</h1>
+                        <div class="story-content">
+                            <Content />
+                        </div>
+                    </div>
+                </main>
+                <a href="/" class="back-button">
+                    ← Back to Library
+                </a>
+            </div>
+        )
+    }
+</Layout>
+
+<style>
+    body {
+        font-size: 18px;
+        font-family: "Gelasio", serif;
+    }
+
+    .book-view {
+        padding: 2rem;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    main {
+        color: black;
+        font-size: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    main div {
+        width: 100%;
+        padding: 2rem;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: normal;
+        margin-bottom: 2rem;
+    }
+
+    h1 {
+        font-family: "Ibarra Real Nova", serif;
+        text-align: center;
+        font-weight: 400;
+        font-size: 3rem;
+        text-transform: uppercase;
+        margin-bottom: 2rem;
+        letter-spacing: 0.1rem;
+    }
+
+    .right-page {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .story-content {
+        line-height: 1.4;
+        text-align: justify;
+        text-justify: inter-word;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    .story-content :global(p) {
+        margin-bottom: 1rem;
+    }
+
+    .story-content :global(p:first-of-type::first-letter) {
+        font-family: "Ibarra Real Nova", serif;
+        font-size: 4.5rem;
+        float: left;
+        margin-top: 0.5rem;
+        margin-right: 1rem;
+        line-height: 0.7;
+    }
+
+    .left-page {
+        text-align: center;
+        padding-top: 2rem;
+    }
+
+    .left-page small {
+        font-style: italic;
+        display: block;
+        margin-top: 2rem;
+    }
+
+    .left-page img {
+        max-width: 90%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .back-button {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #5f5846;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-family: sans-serif;
+        transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+        background-color: #776c54;
+    }
+
+    .error-container {
+        text-align: center;
+        padding: 4rem;
+    }
+
+    .error-container h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-container a {
+        display: inline-block;
+        margin-top: 2rem;
+        padding: 0.75rem 1.5rem;
+        background-color: #5f5846;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+    }
+
+    @media screen and (min-width: 900px) {
+        main {
+            flex-direction: row;
+            width: 100%;
+        }
+
+        .left-page {
+            width: 40%;
+            padding-top: 8rem;
+            padding-right: 2rem;
+        }
+
+        .right-page {
+            width: 60%;
+            padding-top: 3rem;
+            padding-left: 2rem;
+            padding-right: 3rem;
+            overflow-y: auto;
+        }
+
+        h2 {
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            margin-bottom: 3rem;
+        }
+    }
+
+    @media screen and (min-width: 1200px) {
+        .left-page {
+            width: 35%;
+            padding-top: 10rem;
+            padding-right: 2rem;
+        }
+
+        .right-page {
+            width: 65%;
+            padding-top: 4rem;
+            padding-left: 3rem;
+            padding-right: 4rem;
+        }
+
+        h2 {
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            margin-bottom: 4rem;
+        }
+    }
+
+    @media screen and (min-width: 1600px) {
+        .book-view {
+            max-width: 1800px;
+        }
+
+        .left-page {
+            width: 30%;
+            padding-top: 14rem;
+            padding-right: 2rem;
+        }
+
+        .right-page {
+            width: 70%;
+            padding-top: 6rem;
+            padding-left: 4rem;
+            padding-right: 5rem;
+        }
+
+        h2 {
+            margin-bottom: 6rem;
+        }
+
+        h1 {
+            margin-bottom: 6rem;
+        }
+    }
+</style>

@@ -1,0 +1,56 @@
+---
+interface Props {
+    style: "classic" | "ornate" | "simple";
+    color?: string;
+    size?: "small" | "medium" | "large";
+}
+
+const { style = "classic", color = "currentColor", size = "medium" } = Astro.props;
+
+const sizeMap = {
+    small: "2rem",
+    medium: "3rem",
+    large: "4rem",
+};
+
+const height = sizeMap[size];
+---
+
+<div class="book-divider" aria-hidden="true">
+    {
+        style === "classic" && (
+            <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" height={height}>
+                <path d="M50 0L37.5 12L25 0L12.5 12L0 0v24h100V0L87.5 12L75 0L62.5 12L50 0z" fill={color} />
+            </svg>
+        )
+    }
+
+    {
+        style === "ornate" && (
+            <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" height={height}>
+                <path d="M0 12h40l10-12 10 12h40M15 12l10 12 10-12M65 12l10 12 10-12" stroke={color} stroke-width="2" />
+            </svg>
+        )
+    }
+
+    {
+        style === "simple" && (
+            <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg" height={height}>
+                <line x1="0" y1="12" x2="100" y2="12" stroke={color} stroke-width="2" />
+            </svg>
+        )
+    }
+</div>
+
+<style>
+    .book-divider {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 2rem 0;
+    }
+
+    svg {
+        width: auto;
+    }
+</style>

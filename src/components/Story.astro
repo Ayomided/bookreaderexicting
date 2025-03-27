@@ -1,0 +1,134 @@
+---
+import { Image } from "astro:assets";
+
+const imageUrl = "https://www.oldbookillustrations.com/wp-content/uploads/2017/03/there-lonely.jpg";
+---
+
+<main>
+    <div class="left-page">
+        <Image src={imageUrl} alt="Old book illustration" width={500} height={700} />
+        <small
+            >But go there, lonely,<br />
+            At eventide,<br />
+            And hearken, hearken<br />
+            To the lisping tide.<br />
+        </small>
+    </div>
+    <div class="right-page">
+        <h2>[ 1 ]</h2>
+        <h1>Depender</h1>
+        <p>
+            En cuanto a todas las cosas que existen en el mundo, unas dependen de nosotros, otras no dependen de nosotros. De nosotros dependen; nuestras
+            opiniones, nuestros movimientos, nuestros deseos, nuestras inclinaciones, nuestras aversiones; en una palabra, todas nuestras acciones.<br />
+            Las cosas que no dependen de nosotros son: el cuerpo, los bienes, la reputación, la honra; en una palabra, todo lo que no es nuestra propia acción. Las
+            cosas que dependen de nosotros son por naturaleza libres, nada puede detenerlas, ni obstaculizarlas; las que no dependen de nosotros son débiles, esclavas,
+            dependientes, sujetas a mil obstáculos y a mil inconvenientes, y enteramente ajenas.<br />
+            Recuerda pues que, si tu crees libres, a las cosas por naturaleza esclavas, y propias, a las que dependen de otro; encontrarás obstáculos a cada paso,
+            estarás afligido, alterado, e increparas a Dios y a los Hombres. En cambio si tu tienes, a lo que te pertenece, como propio y, a lo ajeno como de otro;
+            nunca, nadie, te forzará a hacer lo que no quieres ni te impedirá hacer lo que quieres. No increparás a nadie, ni acusarás a persona alguna; no harás
+            ni la más pequeña cosa, que no desees; nadie, entonces, te hará mal alguno, y no tendrás enemigos, pues nada aceptarás que te sea perjudicial.<br />
+            Aspirando entonces a tan grandes bienes, recuerda que tu no debes trabajar mediocremente para lograrlos, y que, en lo que concierne a las cosas exteriores,
+            debes enteramente renunciar a algunas y diferir otras. Pues si buscas armonizarlas, y ambicionas estos bienes y también riquezas y honores, quizá no
+            obtengas ni siquiera éstos últimos, por desear también los otros; pero con toda seguridad, no obtendrás los únicos bienes con los que logras tu libertad
+            y felicidad.<br />
+            Así, ante toda fantasía perturbadora, está presto a decir: <i>"Tu no eres sino una imaginación, y en absoluto eres lo que parece"</i>, enseguida
+            examínala con atención y ponla a prueba, para ello sírvete de las reglas que tienes, principalmente con esta primera que es, a saber : de si la cosa
+            que te hace penar es del número de aquellas que dependen de nosotros o de aquellas que no están en nuestro poder. Di sin titubear: <i
+                >"Esa en nada me atañe".</i
+            >
+        </p>
+    </div>
+</main>
+
+<style>
+    body {
+        font-size: 18px;
+        background: url("https://www.toptal.com/designers/subtlepatterns/patterns/groovepaper.png");
+        font-family: "Gelasio", serif;
+    }
+
+    main {
+        color: black;
+        font-size: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    main div {
+        width: 100%;
+        padding: 6rem 5rem;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: normal;
+        margin-bottom: 6rem;
+    }
+    h1 {
+        font-family: "Ibarra Real Nova", serif;
+        text-align: center;
+        font-weight: 400;
+        font-size: 3rem;
+        text-transform: uppercase;
+        margin-bottom: 6rem;
+        letter-spacing: 0.1rem;
+    }
+
+    .right-page {
+        margin-top: 0;
+        padding-top: 0;
+    }
+    .right-page p {
+        line-height: 1.4;
+        text-align: justify;
+        text-justify: inter-word;
+    }
+
+    .right-page p:first-letter {
+        font-family: "Ibarra Real Nova", serif;
+        font-size: 4.5rem;
+        float: left;
+        margin-top: 0.5rem;
+        margin-right: 1rem;
+        line-height: 0.7;
+    }
+
+    .left-page {
+        text-align: center;
+        padding-top: 4rem;
+    }
+
+    .left-page small {
+        font-style: italic;
+    }
+
+    .left-page Image {
+        max-width: 90%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media screen and (min-width: 900px) {
+        main {
+            flex-direction: row;
+            with: 100%;
+            max-width: 1800px;
+        }
+        main div {
+            width: 50%;
+        }
+        .left-page {
+            padding-top: 14rem;
+        }
+        .right-page {
+            padding-top: 6rem;
+            max-height: 100vh;
+            height: 100vh;
+        }
+    }
+</style>

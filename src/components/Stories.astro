@@ -1,0 +1,356 @@
+---
+import { createReader } from "@keystatic/core/reader";
+import keystaticConfig from "../../keystatic.config";
+
+const reader = createReader(process.cwd(), keystaticConfig);
+const stories = await reader.collections.stories.all();
+
+// Load the complete entries for each story to access authors
+const storiesWithEntries = await Promise.all(
+    stories.map(async (story) => {
+        const entry = await reader.collections.stories.readOrThrow(story.slug);
+        return { ...story, fullEntry: entry };
+    }),
+);
+
+// Generate dynamic CSS for story covers and links
+const dynamicStoryStyles = storiesWithEntries
+    .map(
+        (story) => `
+#${story.slug}:checked ~ .book-container .book__cover {
+    background-image: url("${story.entry.cover}"),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2)),
+        linear-gradient(to right, rgba(0, 0, 0, 0.2) 0, rgba(0, 0, 0, 0) 0.5vmin, rgba(0, 0, 0, 0.2) 1vmin, rgba(0, 0, 0, 0) 1.25vmin);
+    background-size: cover, 100% 100%, 100% 100%;
+}
+
+#${story.slug}:checked ~ labels label[for="${story.slug}"] {
+    background-color: #f5f2e8;
+}
+
+#${story.slug}:checked ~ labels label[for="${story.slug}"] .read-button {
+    opacity: 1;
+    transform: translateX(0);
+}
+`,
+    )
+    .join("\n");
+---
+
+<main>
+    <!-- Radio inputs -->
+    {storiesWithEntries.map((story, index) => <input type="radio" name="cover" id={story.slug} checked={index === 0} data-story-slug={story.slug} />)}
+    <input type="radio" name="cover" id="blank" data-story-slug="blank" />
+
+    <!-- Book display with flip animation -->
+    <div class="book-container">
+        <div class="book">
+            <div class="book__cover"></div>
+            <div class="book__page"></div>
+            <a class="book__link"></a>
+        </div>
+    </div>
+
+    <!-- Labels -->
+    <labels>
+        {
+            storiesWithEntries.map((story) => (
+                <label for={story.slug} data-authors={story.fullEntry.authors?.join(", ")}>
+                    {story.entry.title}
+                    <a href={`/stories/${story.slug}`} class="read-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                        </svg>
+                        Read
+                    </a>
+                </label>
+            ))
+        }
+        <label for="blank">No cover</label>
+    </labels>
+</main>
+
+<!-- Inject dynamic styles -->
+<style is:inline set:html={dynamicStoryStyles}></style>
+
+<style>
+    /* Book container styles */
+    .book-container {
+        perspective: 800px;
+        margin: 0 2rem;
+    }
+
+    /* Book styles */
+    .book {
+        position: relative;
+        background-color: white;
+        box-shadow:
+            0.125vmin 0.125vmin 0.5vmin rgba(0, 0, 0, 0.3),
+            0.25vmin 0.25vmin 1vmin rgba(0, 0, 0, 0.3),
+            1vmin 1.25vmin 2.5vmin rgba(0, 0, 0, 0.4);
+        width: 40vmin;
+        height: 60vmin;
+        border-radius: 0.5vmin 1.5vmin 1.5vmin 0.5vmin;
+        transform-origin: left center;
+        transition: transform 0.5s ease-in-out;
+        transform-style: preserve-3d;
+    }
+
+    /* Book cover - the front of the book */
+    .book__cover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0.5vmin 1.5vmin 1.5vmin 0.5vmin;
+        background-size:
+            cover,
+            100% 100%,
+            100% 100%;
+        background-position: center;
+        z-index: 2;
+        transform-origin: left center;
+        transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+        box-shadow:
+            -0.125vmin -0.25vmin 0.5vmin rgba(0, 0, 0, 0.2) inset,
+            -0.125vmin -0.125vmin 0.25vmin rgba(0, 0, 0, 0.2) inset;
+        background-image:
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2)),
+            linear-gradient(to right, rgba(0, 0, 0, 0.2) 0, rgba(0, 0, 0, 0) 0.5vmin, rgba(0, 0, 0, 0.2) 1vmin, rgba(0, 0, 0, 0) 1.25vmin);
+    }
+
+    /* Book page - inside of the book */
+    .book__page {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #fbfae8;
+        z-index: 1;
+        border-radius: 0.5vmin 1.5vmin 1.5vmin 0.5vmin;
+        box-shadow: 0 0 5px 1.5px rgba(0, 0, 0, 0.25);
+        background-image: linear-gradient(to bottom, transparent 9px, #e4e4e4 1px);
+        background-size: 100% 10px;
+    }
+
+    /* Link overlay for the book */
+    .book__link {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 3;
+        cursor: pointer;
+    }
+
+    /* Hover and interaction effects */
+    .book-container:hover .book {
+        transform: rotateZ(-8deg);
+    }
+
+    .book-container:hover .book__cover {
+        transform: rotateY(-40deg);
+        z-index: 3;
+        box-shadow: 20px 10px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    /* When blank is selected */
+    #blank:checked ~ .book-container .book__cover {
+        background-image:
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2)),
+            linear-gradient(to right, rgba(0, 0, 0, 0.2) 0, rgba(0, 0, 0, 0) 0.5vmin, rgba(0, 0, 0, 0.2) 1vmin, rgba(0, 0, 0, 0) 1.25vmin);
+    }
+
+    #blank:checked ~ .book-container .book__link {
+        pointer-events: none;
+    }
+
+    /* General styles */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: linen;
+        font-family: sans-serif;
+        font-size: 2.4vmin;
+        font-weight: 100;
+        color: #5f5846;
+    }
+    main {
+        display: flex;
+    }
+    input {
+        position: fixed;
+        top: -999px;
+        left: -999px;
+    }
+    labels {
+        width: 18em;
+    }
+    label {
+        display: block;
+        margin: 0.5rem;
+        padding: 2vmin;
+        font-family: sans-serif;
+        font-size: 1.5em;
+        cursor: pointer;
+        position: relative;
+        transition: background-color 0.3s;
+        border-radius: 0.5vmin;
+    }
+    label:hover {
+        background-color: #f5f2e8;
+    }
+    label::before {
+        content: attr(data-authors);
+        display: block;
+        opacity: 0.7;
+        font-size: 60%;
+        line-height: 1em;
+        text-transform: uppercase;
+    }
+    label:last-child::before {
+        content: none;
+    }
+
+    /* Read button styling */
+    .read-button {
+        position: absolute;
+        right: 2vmin;
+        top: 30%;
+        /* transform: translateY(-50%) translateX(10px); */
+        background-color: #5f5846;
+        color: white;
+        text-decoration: none;
+        padding: 0.5vmin 1vmin;
+        border-radius: 0.5vmin;
+        font-size: 0.7em;
+        display: flex;
+        align-items: center;
+        gap: 0.5vmin;
+        opacity: 0;
+        transition: opacity 0.3s;
+        /* transform 0.3s; */
+    }
+
+    .read-button svg {
+        width: 1em;
+        height: 1em;
+    }
+
+    label:hover .read-button {
+        opacity: 1;
+        /* transform: translateY(-50%) translateX(0); */
+    }
+
+    #blank:checked ~ labels label[for="blank"] {
+        background-color: #f5f2e8;
+    }
+
+    p {
+        padding: 2vmin;
+    }
+
+    /* Animation for the book opening when clicked */
+    .book.opening {
+        animation: bookRotate 1.2s forwards;
+    }
+
+    .book.opening .book__cover {
+        animation: coverOpen 1.2s forwards;
+    }
+
+    @keyframes bookRotate {
+        0% {
+            transform: rotateZ(0deg);
+        }
+        30% {
+            transform: rotateZ(-8deg);
+        }
+        100% {
+            transform: rotateZ(-8deg);
+        }
+    }
+
+    @keyframes coverOpen {
+        0% {
+            transform: rotateY(0deg);
+        }
+        30% {
+            transform: rotateY(-40deg);
+        }
+        100% {
+            transform: rotateY(-180deg);
+        }
+    }
+</style>
+
+<script>
+    // Book click animation and navigation
+    document.addEventListener("DOMContentLoaded", () => {
+        const book = document.querySelector(".book");
+        const bookLink = document.querySelector(".book__link");
+
+        if (book && bookLink) {
+            bookLink.addEventListener("click", (e) => {
+                e.preventDefault();
+
+                // Get selected story slug
+                const checkedInput = document.querySelector('input[type="radio"][name="cover"]:checked');
+                if (checkedInput) {
+                    const slug = checkedInput.getAttribute("data-story-slug");
+                    if (slug && slug !== "blank") {
+                        // Add animation classes
+                        book.classList.add("opening");
+
+                        // Wait for animation to complete before navigating
+                        setTimeout(() => {
+                            window.location.href = `/stories/${slug}`;
+                        }, 800);
+                    }
+                }
+            });
+        }
+
+        // Set link href based on selected story
+        function updateBookLink() {
+            const checkedInput = document.querySelector('input[type="radio"][name="cover"]:checked');
+            if (checkedInput && bookLink) {
+                const slug = checkedInput.getAttribute("data-story-slug");
+                if (slug && slug !== "blank") {
+                    bookLink.setAttribute("href", `/stories/${slug}`);
+                    bookLink.setAttribute("style", "cursor: pointer;");
+                } else {
+                    bookLink.removeAttribute("href");
+                    bookLink.setAttribute("style", "cursor: default;");
+                }
+            }
+        }
+
+        // Update link when radio selection changes
+        const radioInputs = document.querySelectorAll('input[type="radio"][name="cover"]');
+        radioInputs.forEach((input) => {
+            input.addEventListener("change", () => {
+                updateBookLink();
+
+                // Optionally reset any animation classes when changing books
+                if (book) {
+                    book.classList.remove("opening");
+                }
+            });
+        });
+
+        // Initialize link
+        updateBookLink();
+    });
+</script>
