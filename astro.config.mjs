@@ -8,6 +8,8 @@ import keystatic from "@keystatic/astro";
 
 import node from "@astrojs/node";
 
+import vercel from "@astrojs/vercel";
+
 // https://astro.build/config
 export default defineConfig({
   output: "server",
@@ -21,7 +23,5 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  adapter: node({
-    mode: "standalone",
-  }),
+  adapter: vercel(),
 });
