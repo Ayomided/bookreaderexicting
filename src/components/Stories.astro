@@ -1,24 +1,18 @@
 ---
-import { createReader } from "@keystatic/core/reader";
-import keystaticConfig from "../../keystatic.config";
+import { getCollection } from "astro:content";
 
-const reader = createReader(process.cwd(), keystaticConfig);
-const stories = await reader.collections.stories.all();
+const allStories = await getCollection("stories");
 
-// Load the complete entries for each story to access authors
-const storiesWithEntries = await Promise.all(
-    stories.map(async (story) => {
-        const entry = await reader.collections.stories.readOrThrow(story.slug);
-        return { ...story, fullEntry: entry };
-    }),
+const stories = allStories.sort((a, b) =>
+    a.data.title.localeCompare(b.data.title),
 );
 
-// Generate dynamic CSS for story covers and links
-const dynamicStoryStyles = storiesWithEntries
+const dynamicStoryStyles = stories
     .map(
         (story) => `
 #${story.slug}:checked ~ .book-container .book__cover {
-    background-image: url("${story.entry.cover}"),
+    /* Use story.data.cover */
+    background-image: url("${story.data.cover}"),
         linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.2)),
         linear-gradient(to right, rgba(0, 0, 0, 0.2) 0, rgba(0, 0, 0, 0) 0.5vmin, rgba(0, 0, 0, 0.2) 1vmin, rgba(0, 0, 0, 0) 1.25vmin);
     background-size: cover, 100% 100%, 100% 100%;
@@ -39,25 +33,37 @@ const dynamicStoryStyles = storiesWithEntries
 
 <main>
     <!-- Radio inputs -->
-    {storiesWithEntries.map((story, index) => <input type="radio" name="cover" id={story.slug} checked={index === 0} data-story-slug={story.slug} />)}
+    {
+        stories.map((story, index) => (
+            <input
+                type="radio"
+                name="cover"
+                id={story.slug}
+                checked={index === 0}
+                data-story-slug={story.slug}
+            />
+        ))
+    }
     <input type="radio" name="cover" id="blank" data-story-slug="blank" />
 
-    <!-- Book display with flip animation -->
+    <!-- Book display -->
     <div class="book-container">
         <div class="book">
             <div class="book__cover"></div>
             <div class="book__page"></div>
-            <a class="book__link"></a>
         </div>
     </div>
 
-    <!-- Labels -->
     <labels>
         {
-            storiesWithEntries.map((story) => (
-                <label for={story.slug} data-authors={story.fullEntry.authors?.join(", ")}>
-                    {story.entry.title}
+            stories.map((story) => (
+                <label
+                    for={story.slug}
+                    data-authors={story.data.authors?.join(", ") ?? "Unknown"}
+                >
+                    {story.data.title /* Use story.data.title */}
                     <a href={`/stories/${story.slug}`} class="read-button">
+                        {/* SVG Icon */}
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
                         </svg>
@@ -133,17 +139,6 @@ const dynamicStoryStyles = storiesWithEntries
         box-shadow: 0 0 5px 1.5px rgba(0, 0, 0, 0.25);
         background-image: linear-gradient(to bottom, transparent 9px, #e4e4e4 1px);
         background-size: 100% 10px;
-    }
-
-    /* Link overlay for the book */
-    .book__link {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 3;
-        cursor: pointer;
     }
 
     /* Hover and interaction effects */
@@ -298,59 +293,12 @@ const dynamicStoryStyles = storiesWithEntries
 <script>
     // Book click animation and navigation
     document.addEventListener("DOMContentLoaded", () => {
-        const book = document.querySelector(".book");
-        const bookLink = document.querySelector(".book__link");
-
-        if (book && bookLink) {
-            bookLink.addEventListener("click", (e) => {
-                e.preventDefault();
-
-                // Get selected story slug
-                const checkedInput = document.querySelector('input[type="radio"][name="cover"]:checked');
-                if (checkedInput) {
-                    const slug = checkedInput.getAttribute("data-story-slug");
-                    if (slug && slug !== "blank") {
-                        // Add animation classes
-                        book.classList.add("opening");
-
-                        // Wait for animation to complete before navigating
-                        setTimeout(() => {
-                            window.location.href = `/stories/${slug}`;
-                        }, 800);
-                    }
-                }
-            });
-        }
-
-        // Set link href based on selected story
-        function updateBookLink() {
-            const checkedInput = document.querySelector('input[type="radio"][name="cover"]:checked');
-            if (checkedInput && bookLink) {
-                const slug = checkedInput.getAttribute("data-story-slug");
-                if (slug && slug !== "blank") {
-                    bookLink.setAttribute("href", `/stories/${slug}`);
-                    bookLink.setAttribute("style", "cursor: pointer;");
-                } else {
-                    bookLink.removeAttribute("href");
-                    bookLink.setAttribute("style", "cursor: default;");
-                }
-            }
-        }
 
         // Update link when radio selection changes
         const radioInputs = document.querySelectorAll('input[type="radio"][name="cover"]');
         radioInputs.forEach((input) => {
             input.addEventListener("change", () => {
-                updateBookLink();
-
-                // Optionally reset any animation classes when changing books
-                if (book) {
-                    book.classList.remove("opening");
-                }
             });
         });
-
-        // Initialize link
-        updateBookLink();
     });
 </script>

@@ -1,60 +1,50 @@
 ---
-export const prerender = false;
-
 import Layout from "../../layouts/Layout.astro";
 
-import { getEntry } from "astro:content";
+import { getCollection, type CollectionEntry, render } from "astro:content";
 
-// Get the story slug from the URL
-const { slug } = Astro.params;
 
-// Fetch the story data
-let error = false;
-
-if (!slug) {
-    error = false;
-    throw new Error("Slug is required");
+export async function getStaticPaths() {
+    const allStories = await getCollection("stories");
+    if (allStories.length === 0) {
+        console.warn("WARNING: getCollection('stories') returned 0 entries. Check configuration, file extensions (.mdoc), and location (src/content/stories/).");
+    }
+    return allStories.map((story) => ({
+        params: { slug: story.slug },
+        props: { story },
+    }));
 }
 
-const story = await getEntry("stories", slug);
-if (!story) {
-    error = false;
-    throw new Error("Story is empty");
-}
-const { Content } = await story.render();
+type Props = {
+    story: CollectionEntry<"stories">;
+};
+const { story } = Astro.props;
 
-// Format author names for display
-const authorText = story?.data.authors ? story.data.authors.join(", ") : "Unknown";
+const { Content } = await render(story);
+
+const authorText = story.data.authors ? story.data.authors.join(", ") : "Unknown";
 ---
 
-<Layout title={story?.data.title || "Story Not Found"}>
-    {
-        error ? (
-            <div class="error-container">
-                <h1>Story Not Found</h1>
-                <p>Sorry, we couldn't find the story you're looking for.</p>
-                <a href="/">Return Home</a>
+<Layout title={story?.data.title}>
+    <div class="book-view">
+    <div class="sticky top-0 flex items-center h-16 px-8 rounded-sm">
+        <a href="/" class="back-button">
+            ← Back to Library
+        </a>
+    </div>
+        <main>
+            <div class="left-page">
+                {story.data.cover && <img src={story.data.cover} alt={story.data.title} />}
+                <small>{authorText}</small>
             </div>
-        ) : (
-            <div class="book-view">
-                <main>
-                    <div class="left-page">
-                        {story?.data.cover && <img src={story.data.cover} alt={story?.data.title} />}
-                        <small>{authorText}</small>
-                    </div>
-                    <div class="right-page">
-                        <h1>{story?.data.title}</h1>
-                        <div class="story-content">
-                            <Content />
-                        </div>
-                    </div>
-                </main>
-                <a href="/" class="back-button">
-                    ← Back to Library
-                </a>
+            <div class="right-page">
+                <h1>{story.data.title}</h1>
+                <div class="story-content">
+                    <Content />
+                </div>
             </div>
-        )
-    }
+        </main>
+    </div>
 </Layout>
 
 <style>
@@ -147,12 +137,12 @@ const authorText = story?.data.authors ? story.data.authors.join(", ") : "Unknow
 
     .back-button {
         display: inline-block;
-        margin-top: 2rem;
         padding: 0.75rem 1.5rem;
         background-color: #5f5846;
         color: white;
         text-decoration: none;
         border-radius: 4px;
+        font-size: 10px;
         font-family: sans-serif;
         transition: background-color 0.3s;
     }
