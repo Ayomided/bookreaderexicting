@@ -6,6 +6,7 @@ import markdoc from "@astrojs/markdoc";
 import tailwindcss from "@tailwindcss/vite";
 import keystatic from "@keystatic/astro";
 
+import node from '@astrojs/node';
 import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
@@ -20,5 +21,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  adapter: vercel(),
+  adapter: node({
+    mode: "standalone"
+  }),
 });
