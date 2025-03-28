@@ -4,7 +4,9 @@ import { BookDivider } from "./src/components/BookDivider";
 
 export default config({
   storage: {
-    kind: "local",
+    // kind: "local",
+    kind: "github",
+    repo: "Ayomided/bookreaderexicting",
   },
   collections: {
     stories: collection({
@@ -24,7 +26,11 @@ export default config({
             BookDivider: BookDivider,
           },
         }),
-        cover: fields.image({ label: "Cover", directory: "public/images/covers", publicPath: "/images/covers" }),
+        cover: fields.image({
+          label: "Cover",
+          directory: "public/images/covers",
+          publicPath: "/images/covers",
+        }),
       },
     }),
   },
