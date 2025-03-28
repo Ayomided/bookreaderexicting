@@ -6,11 +6,22 @@ import markdoc from "@astrojs/markdoc";
 import tailwindcss from "@tailwindcss/vite";
 import keystatic from "@keystatic/astro";
 
+import node from "@astrojs/node";
+
 // https://astro.build/config
 export default defineConfig({
-  integrations: [react(), markdoc(), ...(process.env.SKIP_KEYSTATIC ? [] : [keystatic()])],
+  output: "server",
+  integrations: [
+    react(),
+    markdoc(),
+    ...(process.env.SKIP_KEYSTATIC ? [] : [keystatic()]),
+  ],
 
   vite: {
     plugins: [tailwindcss()],
   },
+
+  adapter: node({
+    mode: "standalone",
+  }),
 });
